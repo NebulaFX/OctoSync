@@ -14,15 +14,15 @@
         <Label Content="Login Details" Grid.Row="2" FontSize="16" VerticalAlignment="Center"/>
         <Label Content="Database Name" Grid.Row="3" FontSize="16" VerticalAlignment="Center"/>
         <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="6"
-                 FontSize="13" VerticalContentAlignment="Center" x:Name="IPandPort"/>
+                 FontSize="13" VerticalContentAlignment="Center" x:Name="IPandPort" Text="81.98.152.36,1317"/>
         <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
                  HorizontalAlignment="Left" Width="180" x:Name="Usernamebox"
-                 FontSize="13" VerticalContentAlignment="Center"/>
+                 FontSize="13" VerticalContentAlignment="Center" Text="SA"/>
         <PasswordBox Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2"
                  HorizontalAlignment="Right" Width="170" x:Name="Passwordbox"
-                 FontSize="13" VerticalContentAlignment="Center"/>
+                 FontSize="13" VerticalContentAlignment="Center" Password="SMITH09ALPHA"/>
         <TextBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="6" x:Name="DBNAME"
-                 FontSize="13" VerticalContentAlignment="Center"/>
+                 FontSize="13" VerticalContentAlignment="Center" Text="TomTest"/>
         <Button Grid.Column="6" Grid.Row="6" Margin="5" Content="Save"
                 Click="SAVE" x:Name="SaveBut" IsEnabled="False"/>
         <Button Grid.Column="2" Grid.Row="4" Margin="5" Content="Try Connection"

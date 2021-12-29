@@ -88,7 +88,8 @@ namespace OctoSync
                     {
                         result = Convert.ToString(tempcommand.ExecuteScalar());
                     }
-                    catch (Exception ex)
+                    catch (Exception 
+                    ex)
                     {
                     }
                     if (connection.State != ConnectionState.Closed)

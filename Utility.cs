@@ -13,12 +13,49 @@ namespace OctoSync
 {
     class Utility
     {
+        // Query Information For Sync
+        public static DataTable ServerData { get; set; }
+        public static DataTable ClientData { get; set; }
+
         /// <summary>
         /// Asynchronously Start The Mirror Cycle
         /// </summary>
-        public static void StartTheSync()
+        public async static void StartTheSync()
         {
-        }
+            // Objects
+            MainWindow mw = new();
+
+            // Load Data Into Data Tables
+            ClientData = await SQL.GetSQLData("Select [Name Of Item] ,(SELECT [Setting] FROM [Settings] Where SettingName = 'StockLocationReferenceName') as StoreCode ,[Quantity] From Stock Where [Name of Item] != '' and [Name of Item] is not Null order by Quantity desc");
+            ServerData = await SQL.GetSQLData("Select [Name Of Item] ,[StoreCode] ,[Quantity] From OctoSyncStock order by Quantity desc");
+
+            // Write Server Details
+            StringBuilder sb = new StringBuilder();
+            foreach (DataRow cData in ClientData.Rows)
+            {
+                // SERVER DATA
+                string c_NameOfItem = cData["Name of Item"].ToString();
+                string c_StoreCode = cData["StoreCode"].ToString();
+                string c_Quantity = cData["Quantity"].ToString();
+
+                // CLIENT DATA
+                foreach (DataRow sData in ServerData.Rows)
+                {
+                    string s_NameOfItem = sData["Name Of Item"].ToString();
+                    string s_StoreCode = sData["StoreCode"].ToString();
+                    string s_Quantity = sData["Quantity"].ToString();
+
+                    // Compare 
+                    if (s_NameOfItem == c_NameOfItem && s_StoreCode == c_StoreCode && s_Quantity != c_Quantity)
+                    {
+                        /* UPDATE THIS QUANTITY TO MATCH LOCAL DATA -> SERVER */
+                        await SQL.ExecuteThisQuery($"Update OctoSyncStock set Quantity = '{c_Quantity}' where [Name Of Item] = '{c_NameOfItem}' AND StoreCode = '{c_StoreCode}'");
+                        File.WriteAllText("LOGS.txt", $"Updated Product: {c_NameOfItem}, Set Current Quantity To: {c_Quantity} Where Quantity Was {s_Quantity}" + Environment.NewLine);
+                        mw.AddConsoleEntry($"Updated Product: {c_NameOfItem}, Set Current Quantity To: {c_Quantity} Where Quantity Was {s_Quantity}");
+                    }
+                }
+            }
+         }
 
         /// <summary>
         /// Asynchronously Create The Required Tables: OctoSyncStock (String SyncValueToEnter)

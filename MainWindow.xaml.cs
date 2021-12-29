@@ -1,9 +1,23 @@
 ﻿using System;
 using System.Data.SqlClient;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+
+// TODO:
+// ** MINOR **
+// Error Logs Being Overwritten By Sync Status Codes
+// Log To The Console When Sync Value Is Selected
+// Save Connection Details For Re-Opening
+// Assign Startup Task For Program In Windows [Configurable]
+// 
+// ** MAJOR **
+// - Put into cycle, taking into account cycle mins
+// - Insert Commands [New Products]
+// - Login As SQL User, Rather Than 3141 [Log Entry To SQL]
+// - Upload Errors To Server [With Customer Number]
 
 namespace OctoSync
 {
@@ -111,6 +125,7 @@ namespace OctoSync
                         {
                             AddConsoleEntry("Sync Value Selected: " + SCDropdown.SyncValueEntry);
                             SyncCombobox.Text = SCDropdown.SyncValueEntry;
+                            AddConsoleEntry("Sync Value Entered: " + SCDropdown.SyncValueEntry);
                         }
                     }
                 }
@@ -129,7 +144,11 @@ namespace OctoSync
         #region [*] Login Form & Add Console Entry
         public async void AddConsoleEntry(string ConsoleEntry)
         {
-            Console.Text += DateTime.Now + " |  " + ConsoleEntry + Environment.NewLine;
+            // Grab Entry
+            var xy = Console.Text += DateTime.Now + " |  " + ConsoleEntry + Environment.NewLine;
+
+            // Insert Into Text File
+            File.WriteAllText("LOGS.txt", xy);
         }
 
         private void PasswordBox_KeyDown(object sender, KeyEventArgs e)
