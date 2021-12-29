@@ -1,0 +1,26 @@
+﻿<Window x:Class="OctoSync.SyncValueDropdown"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OctoSync"
+        mc:Ignorable="d"
+        WindowStartupLocation="CenterScreen"
+        Title="SyncValueDropdown" Height="250" Width="300">
+    <Grid>
+        <Label Content="Table Does Not Exist, Please Select A Sync Value" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        <ComboBox Grid.RowSpan="2" VerticalAlignment="Center" Grid.Row="1" Height="70" x:Name="dropdownentry">
+            <ComboBoxItem Content="Name Of Item"/>
+            <ComboBoxItem Content="Supplier Code"/>
+            <ComboBoxItem Content="Barcode"/>
+            <ComboBoxItem Content="Internal Reference Code"/>
+        </ComboBox>
+        <Button Grid.Row="3" Content="Save" Click="Save"/>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+    </Grid>
+</Window>
