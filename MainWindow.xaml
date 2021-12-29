@@ -4,13 +4,25 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OctoSync"
+        xmlns:tb="http://www.hardcodet.net/taskbar"
         ResizeMode="NoResize"
-        WindowStyle="ToolWindow"
         WindowStartupLocation="CenterScreen"
+        WindowStyle="ToolWindow"
         mc:Ignorable="d"
-        Title="OctoSync" Height="395" Width="600">
+        Title="OctoSync" Height="400" Width="600">
     <Grid Margin="5">
 
+        <tb:TaskbarIcon
+                  IconSource="octopus.ico">
+            <!-- Set a simple context menu  -->
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu Background="GhostWhite">
+                    <MenuItem Header="Show/Hide Sync Software" Click="ShowFormAgain"/>
+                    <MenuItem Header="Show Error Log" Click="ShowErrorLog"/>
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
+        
         <Button Grid.Row="1" Grid.Column="6" HorizontalAlignment="Right"
                 Width="29" Content="..." Click="LoginDetailsWindow"/>
         <Button Grid.Row="3" Grid.Column="6" HorizontalAlignment="Right"

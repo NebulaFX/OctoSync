@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Hardcodet.Wpf.TaskbarNotification;
+using System;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -8,16 +10,19 @@ using System.Windows.Input;
 
 // TODO:
 // ** MINOR **
-// Error Logs Being Overwritten By Sync Status Codes
-// Log To The Console When Sync Value Is Selected
-// Save Connection Details For Re-Opening
-// Assign Startup Task For Program In Windows [Configurable]
+// - Error Logs Being Overwritten By Sync Status Codes
+// - Log To The Console When Sync Value Is Selected
+// - Save Connection Details For Re-Opening
+// - Assign Startup Task For Program In Windows [Configurable]
+// - Show how long until next mirror cycle
 // 
 // ** MAJOR **
 // - Put into cycle, taking into account cycle mins
 // - Insert Commands [New Products]
 // - Login As SQL User, Rather Than 3141 [Log Entry To SQL]
 // - Upload Errors To Server [With Customer Number]
+// - Pause/Play Button
+// - Force Update Button
 
 namespace OctoSync
 {
@@ -33,6 +38,7 @@ namespace OctoSync
         #region [*] Load Core Resources
 
         // Local Connection Strings
+        #region [*] Local Connection Settings
         private void LoginDetailsWindow(object sender, RoutedEventArgs e)
         {
             GenericDataEntry gde = new();
@@ -76,8 +82,10 @@ namespace OctoSync
                 #endregion
             }
         }
+        #endregion
 
         // Server Connection Strings
+        #region [*] Server Connection Settings
         private async void ServerConnectionDetails(object sender, RoutedEventArgs e)
         {
             GenericDataEntry gde = new();
@@ -134,8 +142,11 @@ namespace OctoSync
 
             }
         }
+        #endregion
 
+        // Program Functions 
         #region [*] Load The Form
+        private TaskbarIcon tb;
         public MainWindow()
         {
             InitializeComponent();
@@ -179,7 +190,19 @@ namespace OctoSync
             Properties.Settings.Default.Reload();
         }
         #endregion
-
+        #region [*] Show/Hide Form
+        private void ShowFormAgain(object sender, RoutedEventArgs e)
+        {
+            if (this.Visibility == Visibility.Collapsed) { this.Visibility = Visibility.Visible; }
+            else { this.Visibility = Visibility.Collapsed; }
+        }
+        #endregion
+        #region [*] Show Error Log
+        private void ShowErrorLog(object sender, RoutedEventArgs e)
+        {
+            if (File.Exists("LOGS.txt")) { File.OpenText("LOGS.txt"); }
+        }
+        #endregion
         #endregion
 
         private async void SAVEFORM(object sender, RoutedEventArgs e)
@@ -213,7 +236,7 @@ namespace OctoSync
             catch 
             {
                 // Server Has Closed The Conversation, Create The Required Tables [Result Returned: NULL]
-                AddConsoleEntry("Server Link Killed, Creating Required Tables");
+                AddConsoleEntry("No Server Link, Creating Required Tables");
                 await Utility.CreateTheRequiredTables(SyncCombobox.Text);
                 await Task.Delay(3500);
                 AddConsoleEntry("Required Tables Created, Starting Mirror Process");
@@ -222,5 +245,7 @@ namespace OctoSync
                 Utility.StartTheSync();
             }
         }
+
+        
     }
 }
