@@ -39,7 +39,8 @@
                  Margin="0,0,30,0" x:Name="ServerConBox"
                  VerticalContentAlignment="Center"/>
         <TextBox Grid.Row="5" Grid.ColumnSpan="2" Grid.Column="1" Text="15" PreviewTextInput="NumberValidationTextBox"
-                 VerticalContentAlignment="Center" MaxLength="3"/>
+                 VerticalContentAlignment="Center" MaxLength="3"
+                 LostFocus="UpdateCycleMins" x:Name="CycleMinsBox"/>
         <TextBox Grid.Row="9" Grid.ColumnSpan="2" Grid.Column="1"
                  VerticalContentAlignment="Center" MaxLength="4" IsEnabled="False"
                  x:Name="StoreCodeBox" LostFocus="SaveStoreCode" IsReadOnly="True"/>

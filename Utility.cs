@@ -49,7 +49,7 @@ namespace OctoSync
                     if (s_NameOfItem == c_NameOfItem && s_StoreCode == c_StoreCode && s_Quantity != c_Quantity)
                     {
                         await SQL.ExecuteThisQuery($"Update OctoSyncStock set Quantity = '{c_Quantity}' where [Name Of Item] = '{c_NameOfItem}' AND StoreCode = '{c_StoreCode}'");
-                        File.WriteAllText("LOGS.txt", $"Updated Product: {c_NameOfItem}, Set Current Quantity To: {c_Quantity} Where Quantity Was {s_Quantity}" + Environment.NewLine);
+                        File.AppendAllText("LOGS.txt", $"Updated Product: {c_NameOfItem}, Set Current Quantity To: {c_Quantity} Where Quantity Was {s_Quantity}" + Environment.NewLine);
                     }
                 }
             }

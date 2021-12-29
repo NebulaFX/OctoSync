@@ -50,6 +50,7 @@ namespace OctoSync
                 {
                     LocalConnectionStringBox.Text = gde.BuiltConnectionString;
                     LocalConnectionString = gde.BuiltConnectionString;
+                    AddConsoleEntry("Local Connection String Added: " + gde.BuiltConnectionString);
 
                     // Obtain Store Code Based On Local Credentials
                     #region [*] Obtain Store Code
@@ -96,6 +97,7 @@ namespace OctoSync
                 try
                 {
                     ServerConBox.Text = gde.BuiltConnectionString;
+                    AddConsoleEntry("Server Connection String Added: " + gde.BuiltConnectionString);
 
                     // Obtain Sync Value Field Based On Server Credentials
                     #region [*] Obtain Sync Value Field
@@ -117,6 +119,7 @@ namespace OctoSync
                         if (SyncValue_raw.ToString() == "CodeSup") { SyncCombobox.Text = "Supplier Code"; SyncCombobox.IsEnabled = false; }
                         if (SyncValue_raw.ToString() == "Barcode") { SyncCombobox.Text = "Barcode"; SyncCombobox.IsEnabled = false; }
                         if (SyncValue_raw.ToString() == "InternalRefCode") { SyncCombobox.Text = "Internal Reference Code"; SyncCombobox.IsEnabled = false; }
+                        AddConsoleEntry("Sync Value Entered: " + SyncValue_raw.ToString());
                     }
 
                     // Value From SQL Returned A Null, Create The Required Tables
@@ -146,20 +149,20 @@ namespace OctoSync
 
         // Program Functions 
         #region [*] Load The Form
-        private TaskbarIcon tb;
         public MainWindow()
         {
             InitializeComponent();
+            AddConsoleEntry("Mirror Software Started");
         }
         #endregion
         #region [*] Login Form & Add Console Entry
         public async void AddConsoleEntry(string ConsoleEntry)
         {
             // Grab Entry
-            var xy = Console.Text += DateTime.Now + " |  " + ConsoleEntry + Environment.NewLine;
+            Console.Text += DateTime.Now + " | " + ConsoleEntry + Environment.NewLine;
 
             // Insert Into Text File
-            File.WriteAllText("LOGS.txt", xy);
+            File.AppendAllText("LOGS.txt", DateTime.Now + " | " + ConsoleEntry + Environment.NewLine);
         }
 
         private void PasswordBox_KeyDown(object sender, KeyEventArgs e)
@@ -201,6 +204,12 @@ namespace OctoSync
         private void ShowErrorLog(object sender, RoutedEventArgs e)
         {
             if (File.Exists("LOGS.txt")) { File.OpenText("LOGS.txt"); }
+        }
+        #endregion
+        #region [*] Update Cycle Minutes
+        private void UpdateCycleMins(object sender, RoutedEventArgs e)
+        {
+            AddConsoleEntry("Cycle Minutes Updated To: " + CycleMinsBox.Text);
         }
         #endregion
         #endregion
@@ -245,7 +254,5 @@ namespace OctoSync
                 Utility.StartTheSync();
             }
         }
-
-        
     }
 }
