@@ -9,20 +9,9 @@
         WindowStartupLocation="CenterScreen"
         WindowStyle="ToolWindow"
         mc:Ignorable="d"
-        Title="OctoSync" Height="400" Width="600">
+        Title="OctoSync" Height="410" Width="620">
     <Grid Margin="5">
 
-        <tb:TaskbarIcon
-                  IconSource="octopus.ico">
-            <!-- Set a simple context menu  -->
-            <tb:TaskbarIcon.ContextMenu>
-                <ContextMenu Background="GhostWhite">
-                    <MenuItem Header="Show/Hide Sync Software" Click="ShowFormAgain"/>
-                    <MenuItem Header="Show Error Log" Click="ShowErrorLog"/>
-                </ContextMenu>
-            </tb:TaskbarIcon.ContextMenu>
-        </tb:TaskbarIcon>
-        
         <Button Grid.Row="1" Grid.Column="6" HorizontalAlignment="Right"
                 Width="29" Content="..." Click="LoginDetailsWindow"/>
         <Button Grid.Row="3" Grid.Column="6" HorizontalAlignment="Right"
@@ -54,12 +43,12 @@
             <ComboBoxItem Content="Internal Reference Code"/>
         </ComboBox>
         <Button Grid.Column="6" Grid.Row="14" Content="Save"
-                Click="SAVEFORM" Margin="5,0,0,0"/>
-
+                Click="SAVEFORM" Margin="5,0,0,0" x:Name="SaveBut"/>
+ 
         <Rectangle Grid.Row="10" Grid.RowSpan="6" Grid.ColumnSpan="3"
                    Fill="GhostWhite" Margin="5"/>
-        <TextBlock Grid.Row="10" Grid.RowSpan="6" Grid.ColumnSpan="3" Margin="5" x:Name="Console"
-                   Foreground="Firebrick" FontSize="10" TextWrapping="Wrap"/>
+        <TextBox Grid.Row="10" Grid.RowSpan="6" Grid.ColumnSpan="4" Margin="5,5,5,30" x:Name="Console"
+                   Foreground="Firebrick" FontSize="10"/>
 
         <PasswordBox Grid.RowSpan="8" Grid.ColumnSpan="4"
                      Background="White" Foreground="Black"

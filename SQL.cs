@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -56,14 +57,21 @@ namespace OctoSync
         /// <summary>
         /// Asynchronously Executes A NON-Query & Returns No Result (string QueryToExecute)
         /// </summary>
-        public static Task ExecuteThisQuery(string QueryToExecute)
+        public static Task ExecuteThisQuery(string QueryToExecute, string StoreCode = "NO_STORE_CODE")
         {
             return Task.Run(() =>
             {
-                using (SqlConnection connection = new SqlConnection(MainWindow.ServerConnectionString))
+                try
                 {
-                    SqlCommand command = new SqlCommand(QueryToExecute, connection);
-                    command.Connection.Open(); command.ExecuteNonQuery(); command.Connection.Close();
+                    using (SqlConnection connection = new SqlConnection(MainWindow.ServerConnectionString))
+                    {
+                        SqlCommand command = new SqlCommand(QueryToExecute, connection);
+                        command.Connection.Open(); command.ExecuteNonQuery(); command.Connection.Close();
+                    }
+                }
+                catch (Exception ee) 
+                { 
+                    File.AppendAllText($"Logs_{StoreCode}", Environment.NewLine + DateTime.Now + " | " + ee.Message);
                 }
             });
         }

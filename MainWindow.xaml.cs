@@ -10,15 +10,15 @@ using System.Windows.Input;
 
 // TODO:
 // ** MINOR **
-// - Error Logs Being Overwritten By Sync Status Codes
-// - Log To The Console When Sync Value Is Selected
 // - Save Connection Details For Re-Opening
 // - Assign Startup Task For Program In Windows [Configurable]
 // - Show how long until next mirror cycle
-// 
+// - Remove files when closing program?
+// - SHOW ME LOGS
+// - REMOVE BIG BERTHA TEXT FILES
+
 // ** MAJOR **
 // - Put into cycle, taking into account cycle mins
-// - Insert Commands [New Products]
 // - Login As SQL User, Rather Than 3141 [Log Entry To SQL]
 // - Upload Errors To Server [With Customer Number]
 // - Pause/Play Button
@@ -149,20 +149,35 @@ namespace OctoSync
 
         // Program Functions 
         #region [*] Load The Form
+
+        public async void LoadConsole()
+        {
+            while (true)
+            {
+                await Task.Delay(2000);
+                if (File.Exists($"Logs_{StoreCodeBox.Text}.txt"))
+                {
+                    Console.Text = File.ReadAllText($"Logs_{StoreCodeBox.Text}.txt");
+                    Console.ScrollToEnd();
+                }
+            }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
             AddConsoleEntry("Mirror Software Started");
+            LoadConsole();
         }
         #endregion
         #region [*] Login Form & Add Console Entry
         public async void AddConsoleEntry(string ConsoleEntry)
         {
-            // Grab Entry
-            Console.Text += DateTime.Now + " | " + ConsoleEntry + Environment.NewLine;
-
             // Insert Into Text File
-            File.AppendAllText("LOGS.txt", DateTime.Now + " | " + ConsoleEntry + Environment.NewLine);
+            if (StoreCodeBox.Text != "")
+            {
+                File.AppendAllText($"Logs_{StoreCodeBox.Text}.txt", DateTime.Now + " | " + ConsoleEntry + Environment.NewLine);
+            }
         }
 
         private void PasswordBox_KeyDown(object sender, KeyEventArgs e)
@@ -239,7 +254,8 @@ namespace OctoSync
                 {
                     // Server Has Confirmed Conversation, Start Mirror Cycle [Based On Info Provided]
                     AddConsoleEntry("Server Link Established, Starting Mirror Process");
-                    Utility.StartTheSync();
+                    Utility.StartTheSync(SyncCombobox.Text, CycleMinsBox.Text, StoreCodeBox.Text);
+                    SaveBut.IsEnabled = false;
                 }
             }
             catch 
@@ -251,7 +267,8 @@ namespace OctoSync
                 AddConsoleEntry("Required Tables Created, Starting Mirror Process");
 
                 // Tables Are Created, Start The Mirror Cycle
-                Utility.StartTheSync();
+                Utility.StartTheSync(SyncCombobox.Text, CycleMinsBox.Text, StoreCodeBox.Text);
+                SaveBut.IsEnabled = false;
             }
         }
     }
