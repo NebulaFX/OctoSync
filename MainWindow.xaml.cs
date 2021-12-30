@@ -261,7 +261,7 @@ namespace OctoSync
             catch 
             {
                 // Server Has Closed The Conversation, Create The Required Tables [Result Returned: NULL]
-                AddConsoleEntry("No Server Link, Creating Required Tables");
+                AddConsoleEntry("No Tables Detected: Creating Required Tables");
                 await Utility.CreateTheRequiredTables(SyncCombobox.Text);
                 await Task.Delay(3500);
                 AddConsoleEntry("Required Tables Created, Starting Mirror Process");
