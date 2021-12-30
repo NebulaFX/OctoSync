@@ -37,7 +37,7 @@ namespace OctoSync
 
                 // Wait Specified Time
                 await Task.Delay(Convert.ToInt32(LoopTime) * 60000);
-                await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", Environment.NewLine + DateTime.Now + $" |  Sync Started");
+                await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  Sync Started" + Environment.NewLine);
 
                 // Convert SyncValue To SQL
                 if (SyncValueToEnter == "Name Of Item") { SyncValueForServer = $"Name Of Item"; }
@@ -46,7 +46,7 @@ namespace OctoSync
                 if (SyncValueToEnter == "Internal Reference Code") { SyncValueForServer = "InternalRefCode"; }
 
                 // Load Data Into Data Tables
-                ClientData = await SQL.GetSQLData($"Select [{SyncValueForServer}] ,(SELECT [Setting] FROM [Settings] Where SettingName = 'StockLocationReferenceName') as StoreCode ,[Quantity], Cast([{SyncValueForServer}] + ' ••• ' + (SELECT [Setting] FROM [Settings] Where SettingName = 'StockLocationReferenceName') as nvarchar(MAX)) as 'CombinedInfo' From Stock Where [{SyncValueForServer}] != '' and [{SyncValueForServer}] is not Null order by Quantity desc");
+                ClientData = await SQL.GetSQLData_FromClient($"Select [{SyncValueForServer}] ,(SELECT [Setting] FROM [Settings] Where SettingName = 'StockLocationReferenceName') as StoreCode ,[Quantity], Cast([{SyncValueForServer}] + ' ••• ' + (SELECT [Setting] FROM [Settings] Where SettingName = 'StockLocationReferenceName') as nvarchar(MAX)) as 'CombinedInfo' From Stock Where [{SyncValueForServer}] != '' and [{SyncValueForServer}] is not Null order by Quantity desc");
                 ServerData = await SQL.GetSQLData($"Select [{SyncValueForServer}], [StoreCode] ,[Quantity], Cast([{SyncValueForServer}] + ' ••• ' + [StoreCode] as nvarchar(max)) as 'CombinedInfo' From OctoSyncStock order by Quantity desc");
 
                 // Find Items To Update

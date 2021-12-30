@@ -34,6 +34,26 @@ namespace OctoSync
             });
         }
 
+        public static Task<DataTable> GetSQLData_FromClient(string QueryToExecute)
+        {
+            return Task.Run(() => {
+
+                // Instances
+                DataTable dt = new DataTable();
+                SqlConnection sqlConnection = new SqlConnection();
+
+                // Run Query & Return As DataTable
+                try { sqlConnection.ConnectionString = MainWindow.LocalConnectionString; } catch { }
+
+                using (SqlDataAdapter da = new SqlDataAdapter(QueryToExecute, sqlConnection.ConnectionString))
+                {
+                    try { da.Fill(dt); } catch { }
+                }
+
+                return dt;
+            });
+        }
+
         public static Task<DataTable> GetSQLData_Authorised(string QueryToExecute)
         {
             return Task.Run(() => {
