@@ -11,6 +11,7 @@ namespace OctoSync
         // SQL Information
         public static string GeneralLogUser { get; set; }
         public static string Generic_SQL_String { get; set; } = "Data Source=161.97.74.117,16666; Initial Catalog=LogDatabase; User ID=GeneralLogUser; Password=GeneralLogUser";
+        public static string DefaultConnectionString { get; set; } = "Data Source=161.97.74.117,16666; Initial Catalog=LogDatabase; User ID=@; Password=^";
 
         // FTP Information
         public static string FTP_Username { get; set; } = "Administrator";

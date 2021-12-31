@@ -11,6 +11,8 @@ namespace OctoSync
 {
     class SQL
     {
+        public static string TheStoreCode { get; set; }
+
         /// <summary>
         /// Asynchronously Executes A Query & Returns The Result In A Datatable (string QueryToExecute)
         /// </summary>
@@ -23,11 +25,11 @@ namespace OctoSync
                 SqlConnection sqlConnection = new SqlConnection();
 
                 // Run Query & Return As DataTable
-                try { sqlConnection.ConnectionString = MainWindow.ServerConnectionString; } catch { }
+                try { sqlConnection.ConnectionString = MainWindow.ServerConnectionString; } catch (Exception eee) { File.AppendAllText($"Logs_{TheStoreCode}", DateTime.Now + " | " + eee.Message + Environment.NewLine); }
 
                 using (SqlDataAdapter da = new SqlDataAdapter(QueryToExecute, sqlConnection.ConnectionString))
                 {
-                    try { da.Fill(dt); } catch { }
+                    try { da.Fill(dt); } catch {}
                 }
 
                 return dt;
@@ -42,12 +44,12 @@ namespace OctoSync
                 DataTable dt = new DataTable();
                 SqlConnection sqlConnection = new SqlConnection();
 
-                // Run Query & Return As DataTable
-                try { sqlConnection.ConnectionString = MainWindow.LocalConnectionString; } catch { }
+            // Run Query & Return As DataTable
+            try { sqlConnection.ConnectionString = MainWindow.LocalConnectionString; } catch (Exception ee) { File.AppendAllText($"Logs_{TheStoreCode}", DateTime.Now + " | " + ee.Message + Environment.NewLine); }
 
                 using (SqlDataAdapter da = new SqlDataAdapter(QueryToExecute, sqlConnection.ConnectionString))
                 {
-                    try { da.Fill(dt); } catch { }
+                    try { da.Fill(dt); } catch (Exception eee) { File.AppendAllText($"Logs_{TheStoreCode}.txt", DateTime.Now + " | ** SQL FAILURE ** " + eee.Message + Environment.NewLine); }
                 }
 
                 return dt;
@@ -63,11 +65,11 @@ namespace OctoSync
                 SqlConnection sqlConnection = new SqlConnection();
 
                 // Run Query & Return As DataTable
-                try { sqlConnection.ConnectionString = MainWindow.ServerConnectionString; } catch { }
+                try { sqlConnection.ConnectionString = MainWindow.ServerConnectionString; } catch (Exception eee) { File.AppendAllText($"Logs_{TheStoreCode}", DateTime.Now + " | " + eee.Message); }
 
                 using (SqlDataAdapter da = new SqlDataAdapter(QueryToExecute, sqlConnection.ConnectionString))
                 {
-                    try { da.Fill(dt); } catch { }
+                    try { da.Fill(dt); } catch (Exception eeee) { File.AppendAllText($"Logs_{TheStoreCode}.txt", DateTime.Now + " | ** SQL FAILURE ** " + eeee.Message + Environment.NewLine); }
                 }
 
                 return dt;
@@ -91,9 +93,90 @@ namespace OctoSync
                 }
                 catch (Exception ee) 
                 { 
-                    File.AppendAllText($"Logs_{StoreCode}", Environment.NewLine + DateTime.Now + " | " + ee.Message);
+                    File.AppendAllText($"Logs_{TheStoreCode}.txt", DateTime.Now + " | ** SQL FAILURE ** " + ee.Message + Environment.NewLine);
                 }
             });
+        }
+
+        /// <summary>
+        /// Post an SQL Object (ActionEntry) To The Active 161 Server
+        /// </summary>
+        /// <param name="StaffName"></param>
+        /// <param name="ActionEntry"></param>
+        /// <returns></returns>
+        public static Task PostToServer(string ActionEntry,string ActionStaff = "Automatic")
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    using (SqlConnection connection = new SqlConnection(Configurations.DefaultConnectionString))
+                    {
+                        string CleanData = ActionEntry.Replace("'", "").Replace("--", "");
+                        String ObjectToSend = $"Insert Into [Services].[dbo].[OctoSyncLog] ([UUID], [CustomerNumber], [Action], [ActionStaff], [ActionDate])" +
+                                              $"VALUES (NEWID(), '{Utility.CustomerID}', '{CleanData}', '{ActionStaff.ToUpper()}', GETDATE())";
+                        SqlCommand command = new SqlCommand(ObjectToSend, connection);
+                        command.Connection.Open(); command.ExecuteNonQuery(); command.Connection.Close();
+                    }
+                }
+                catch (Exception ee) { File.AppendAllText($"Logs_{TheStoreCode}.txt", DateTime.Now + " | ** SQL FAILURE ** Failed To Connect To 161 Server, Local Log Created" + Environment.NewLine + ee.Message); }
+            });
+        }
+
+        /// <summary>
+        /// Post SQL to the 161 server
+        /// </summary>
+        /// <param name="QueryToExecute"></param>
+        /// <param name="StoreCode"></param>
+        /// <returns></returns>
+        public static Task ExecuteThisQuery_161Server(string QueryToExecute)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    using (SqlConnection connection = new SqlConnection(MainWindow.ServerConnectionString))
+                    {
+                        SqlCommand command = new SqlCommand(QueryToExecute, connection);
+                        command.Connection.Open(); command.ExecuteNonQuery(); command.Connection.Close();
+                    }
+                }
+                catch (Exception ee)
+                {
+                    File.AppendAllText($"Logs_{TheStoreCode}.txt", DateTime.Now + " | ** SQL FAILURE ** " + ee.Message + Environment.NewLine);
+                }
+            });
+        }
+
+        /// <summary>
+        /// Sends Users Login To Active Server (string Username, string Password)
+        /// and returns True if they are correct.
+        /// </summary>
+        public static bool CheckLoginDetails(string Username, string Password)
+        {
+            try
+            {
+                Configurations.DefaultConnectionString = Configurations.DefaultConnectionString.Replace("@", Username).Replace("^", Password);
+
+                // Disposable SQL Instance
+                using SqlConnection sql = new(Configurations.DefaultConnectionString);
+
+                // Try Opening Connection
+                sql.Open();
+
+                // If Connection Confirmed Open, Send True
+                if (sql.State == System.Data.ConnectionState.Open)
+                {
+                    // Close & Return Result
+                    sql.Close(); 
+                    return true;
+                }
+                else { return false; }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -116,9 +199,9 @@ namespace OctoSync
                     {
                         result = Convert.ToString(tempcommand.ExecuteScalar());
                     }
-                    catch (Exception 
-                    ex)
+                    catch (Exception ex)
                     {
+                        File.AppendAllText($"Logs_{TheStoreCode}.txt", DateTime.Now + " | ** SQL FAILURE ** " + ex.Message + Environment.NewLine);
                     }
                     if (connection.State != ConnectionState.Closed)
                     {
@@ -128,6 +211,7 @@ namespace OctoSync
                 }
                 catch (Exception ex2)
                 {
+                    File.AppendAllText($"Logs_{TheStoreCode}.txt", DateTime.Now + " | ** SQL FAILURE ** " + ex2.Message + Environment.NewLine);
                     result = "";
                 }
                 return result;

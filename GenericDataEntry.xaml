@@ -10,23 +10,31 @@
         WindowStyle="ToolWindow"
         Title="Enter Your Connection Details" Height="200" Width="500">
     <Grid>
-        <Label Content="IP, Port" Grid.Row="1" FontSize="16" VerticalAlignment="Center"/>
-        <Label Content="Login Details" Grid.Row="2" FontSize="16" VerticalAlignment="Center"/>
-        <Label Content="Database Name" Grid.Row="3" FontSize="16" VerticalAlignment="Center"/>
+        <Label Foreground="#2f7ae5" Content="IP, Port" Grid.Row="1" FontSize="16" VerticalAlignment="Center"/>
+        <Label Foreground="#2f7ae5" Content="Login Details" Grid.Row="2" FontSize="16" VerticalAlignment="Center"/>
+        <Label Foreground="#2f7ae5" Content="Database Name" Grid.Row="3" FontSize="16" VerticalAlignment="Center"/>
         <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="6"
-                 FontSize="13" VerticalContentAlignment="Center" x:Name="IPandPort" Text="81.98.152.36,1317"/>
+                 FontSize="13" VerticalContentAlignment="Center" x:Name="IPandPort"
+                 BorderBrush="#2f7ae5"/>
         <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
                  HorizontalAlignment="Left" Width="180" x:Name="Usernamebox"
-                 FontSize="13" VerticalContentAlignment="Center" Text="SA"/>
+                 BorderBrush="#2f7ae5"
+                 FontSize="13" VerticalContentAlignment="Center"/>
         <PasswordBox Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2"
                  HorizontalAlignment="Right" Width="170" x:Name="Passwordbox"
-                 FontSize="13" VerticalContentAlignment="Center" Password="SMITH09ALPHA"/>
+                     BorderBrush="#2f7ae5"
+                 FontSize="13" VerticalContentAlignment="Center"/>
         <TextBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="6" x:Name="DBNAME"
-                 FontSize="13" VerticalContentAlignment="Center" Text="TomTest"/>
+                 FontSize="13" VerticalContentAlignment="Center"
+                 BorderBrush="#2f7ae5"/>
         <Button Grid.Column="6" Grid.Row="6" Margin="5" Content="Save"
-                Click="SAVE" x:Name="SaveBut" IsEnabled="False"/>
+                Click="SAVE" x:Name="SaveBut" IsEnabled="False"
+                Background="Transparent"
+                BorderBrush="#2f7ae5"/>
         <Button Grid.Column="2" Grid.Row="4" Margin="5" Content="Try Connection"
-                Click="TryCon"/>
+                Click="TryCon"
+                Background="Transparent"
+                BorderBrush="#2f7ae5"/>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition/>

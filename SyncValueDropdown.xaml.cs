@@ -24,9 +24,11 @@ namespace OctoSync
             InitializeComponent();
         }
 
-        private void Save(object sender, RoutedEventArgs e)
+        private async void Save(object sender, RoutedEventArgs e)
         {
-            if (dropdownentry.Text != "") { SyncValueEntry = dropdownentry.Text; this.DialogResult = true; }
+            if (dropdownentry.Text != "") { SyncValueEntry = dropdownentry.Text;
+                await SQL.PostToServer($"Sync Value Selected Manually: {SyncValueEntry}", MainWindow.Username);
+                this.DialogResult = true; }
             else { MessageBox.Show("Please Select A Value"); }
         }
     }

@@ -24,7 +24,7 @@ namespace OctoSync
             InitializeComponent();
         }
 
-        private void save(object sender, RoutedEventArgs e)
+        private async void save(object sender, RoutedEventArgs e)
         {
             if (textboxentry.Text != "")
             {
@@ -34,6 +34,7 @@ namespace OctoSync
                     command.Connection.Open(); command.ExecuteNonQuery(); command.Connection.Close();
                 }
                 NewStoreCode = textboxentry.Text;
+                await SQL.PostToServer($"Store Code Entered Manually: {NewStoreCode}", MainWindow.Username);
                 this.DialogResult = true;
             }
             else { MessageBox.Show("Please Enter A Store Code"); }
