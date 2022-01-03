@@ -19,6 +19,7 @@ using System.Windows.Media;
 // - Upload Errors To Server [With Customer Number]
 // - Button to upload all?
 // - ADD CUSTOM COOLDOWN FOR DIFFERENT PC SYSTEMS?
+// - Only Show logs if Customer is 150 or 719
 
 namespace OctoSync
 {
