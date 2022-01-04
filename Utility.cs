@@ -139,25 +139,36 @@ namespace OctoSync
                         }
                         if (!AddedProduct)
                         {
-                            #region [*] Product Is New [Needs Inserting]
-                            foreach (DataRow sData in ServerData.Rows)
+                            if (ServerData.Rows.Count > 0)
                             {
-                                if (!AddedProduct)
+                                #region [*] Product Is New [Needs Inserting]
+                                foreach (DataRow sData in ServerData.Rows)
                                 {
-                                    // Obtain Information, Create Log & Insert Active Server
-                                    string s_NameOfItem = sData[$"{SyncValueForServer}"].ToString();
-                                    string s_StoreCode = sData["StoreCode"].ToString();
-                                    string s_Quantity = sData["Quantity"].ToString();
-                                    string s_CombinedInformation = sData["CombinedInfo"].ToString();
-
-                                    if (c_CombinedInformation != s_CombinedInformation)
+                                    if (!AddedProduct)
                                     {
-                                        await File.AppendAllTextAsync($"Logs_{c_StoreCode}.txt", DateTime.Now + $" | Inserted Product (New Product): {c_NameOfItem} (Quantity: {c_Quantity})" + Environment.NewLine);
-                                        await SQL.ExecuteThisQuery($"Insert Into \"OctoSyncStock\" ([{SyncValueForServer}], [StoreCode], [Quantity]) VALUES ('{c_NameOfItem}', '{c_StoreCode}', '{c_Quantity}')");
-                                        await SQL.PostToServer($"Inserted Product (New Product): {c_NameOfItem} (Quantity: {c_Quantity})");
-                                        AddedProduct = true;
+                                        // Obtain Information, Create Log & Insert Active Server
+                                        string s_NameOfItem = sData[$"{SyncValueForServer}"].ToString();
+                                        string s_StoreCode = sData["StoreCode"].ToString();
+                                        string s_Quantity = sData["Quantity"].ToString();
+                                        string s_CombinedInformation = sData["CombinedInfo"].ToString();
+
+                                        if (c_CombinedInformation != s_CombinedInformation)
+                                        {
+                                            await File.AppendAllTextAsync($"Logs_{c_StoreCode}.txt", DateTime.Now + $" | Inserted Product (New Product): {c_NameOfItem} (Quantity: {c_Quantity})" + Environment.NewLine);
+                                            await SQL.ExecuteThisQuery($"Insert Into [OctoSyncStock] ([{SyncValueForServer}], [StoreCode], [Quantity]) VALUES ('{c_NameOfItem}', '{c_StoreCode}', '{c_Quantity}')");
+                                            await SQL.PostToServer($"Insert Into [OctoSyncStock] ([{SyncValueForServer}], [StoreCode], [Quantity]) VALUES ('{c_NameOfItem}', '{c_StoreCode}', '{c_Quantity}')", "SUPPORT_STAFF_DEBUG");
+                                            await SQL.PostToServer($"Inserted Product (New Product): {c_NameOfItem} (Quantity: {c_Quantity})");
+                                            AddedProduct = true;
+                                        }
                                     }
                                 }
+                            }
+                            else
+                            {
+                                await File.AppendAllTextAsync($"Logs_{c_StoreCode}.txt", DateTime.Now + $" | Inserted Product (New Product): {c_NameOfItem} (Quantity: {c_Quantity})" + Environment.NewLine);
+                                await SQL.ExecuteThisQuery($"Insert Into [OctoSyncStock] ([{SyncValueForServer}], [StoreCode], [Quantity]) VALUES ('{c_NameOfItem}', '{c_StoreCode}', '{c_Quantity}')");
+                                await SQL.PostToServer($"Inserted Product (New Product): {c_NameOfItem} (Quantity: {c_Quantity})");
+                                AddedProduct = true;
                             }
                             #endregion
                         }

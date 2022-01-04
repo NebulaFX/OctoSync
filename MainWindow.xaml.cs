@@ -431,6 +431,9 @@ namespace OctoSync
         {
             if (StoreCodeBox.Text != "")
             {
+                string _StoreCode = StoreCodeBox.Text;
+                SQL.TheStoreCode = _StoreCode;
+
                 await SQL.PostToServer($"Sync Activated Manually", MainWindow.Username);
 
                 // Save Information

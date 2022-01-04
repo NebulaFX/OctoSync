@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace OctoSync
 {
@@ -113,8 +114,8 @@ namespace OctoSync
                     using (SqlConnection connection = new SqlConnection(Configurations.DefaultConnectionString))
                     {
                         string CleanData = ActionEntry.Replace("'", "").Replace("--", "");
-                        String ObjectToSend = $"Insert Into [Services].[dbo].[OctoSyncLog] ([UUID], [CustomerNumber], [Action], [ActionStaff], [ActionDate])" +
-                                              $"VALUES (NEWID(), '{Utility.CustomerID}', '{CleanData}', '{ActionStaff.ToUpper()}', GETDATE())";
+                        String ObjectToSend = $"Insert Into [Services].[dbo].[OctoSyncLog] ([UUID], [CustomerNumber], [StoreCode], [MachineName], [Action], [ActionStaff], [ActionDate])" +
+                                              $"VALUES (NEWID(), '{Utility.CustomerID}', '{TheStoreCode}', '{Environment.MachineName}', '{CleanData}', '{ActionStaff.ToUpper()}', GETDATE())";
                         SqlCommand command = new SqlCommand(ObjectToSend, connection);
                         command.Connection.Open(); command.ExecuteNonQuery(); command.Connection.Close();
                     }
@@ -122,7 +123,6 @@ namespace OctoSync
                 catch (Exception ee) { File.AppendAllText($"Logs_{TheStoreCode}.txt", DateTime.Now + " | ** SQL FAILURE ** Failed To Connect To 161 Server, Local Log Created" + Environment.NewLine + ee.Message); }
             });
         }
-
         /// <summary>
         /// Post SQL to the 161 server
         /// </summary>
