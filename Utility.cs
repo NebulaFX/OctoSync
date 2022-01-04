@@ -24,6 +24,7 @@ namespace OctoSync
 
         // Loop Information
         public static bool IsInLoop { get; set; } = true;
+        public static double TotalProductsMirrored { get; set; } = 0;
 
         /// <summary>
         /// Asynchronously Start The Mirror Cycle
@@ -47,6 +48,7 @@ namespace OctoSync
             // Begin Loop & Mirror Process
             while (IsInLoop)
             {
+                TotalProductsMirrored = 0;
                 // Stop Progress If In Active Loop
                 if (IsInLoop == false) { await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  ---------------- * Sync Terminated * ----------------" + Environment.NewLine); await SQL.PostToServer($"---------------- * Sync Terminated * ----------------"); break; }
                 await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  Time Until Next Sync: {LoopMinutes} Minute(s)" + Environment.NewLine);
@@ -109,6 +111,7 @@ namespace OctoSync
 
                                 if (c_CombinedInformation == s_CombinedInformation && c_Quantity != s_Quantity)
                                 {
+                                    TotalProductsMirrored++;
                                     AddedProduct = true;
                                     await File.AppendAllTextAsync($"Logs_{c_StoreCode}.txt", DateTime.Now + $" | Updated Product (Quantity Change): {c_NameOfItem}, Set Current Quantity To: {c_Quantity} Where Quantity Was {s_Quantity}" + Environment.NewLine);
                                     await SQL.ExecuteThisQuery($"Update OctoSyncStock set [Quantity] = '{c_Quantity}' where [{SyncValueForServer}] = '{c_NameOfItem}' AND [StoreCode] = '{c_StoreCode}'");
@@ -139,6 +142,7 @@ namespace OctoSync
                         }
                         if (!AddedProduct)
                         {
+                            TotalProductsMirrored++;
                             if (ServerData.Rows.Count > 0)
                             {
                                 #region [*] Product Is New [Needs Inserting]
@@ -187,7 +191,7 @@ namespace OctoSync
                     await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  * No Products To Mirror, Everything Up To Date *" + Environment.NewLine);
                     await SQL.PostToServer($"* No Products To Mirror, Everything Up To Date *");
                 }
-                await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  ---------------- * Sync Finished (Mirrored {ClientData.Rows.Count} Products) * ----------------" + Environment.NewLine);
+                await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  ---------------- * Sync Finished (Mirrored {TotalProductsMirrored} Products) * ----------------" + Environment.NewLine);
                 await SQL.PostToServer($"---------------- * Sync Finished (Mirrored {ClientData.Rows.Count} Products) * ----------------");
             }
         }
