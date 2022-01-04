@@ -1,34 +1,49 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
-using System.Data.SqlClient;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Net;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 
 namespace OctoSync
 {
     class Utility
     {
+        #region [** -- Properties -- **]
         // Query Information For Sync
         public static DataTable ServerData { get; set; }
         public static DataTable ClientData { get; set; }
+        public static DataTable DataFromQuery { get; set; }
         public static string SyncValueForServer { get; set; }
         public static string CustomerID { get; set; } = "150";
 
         // Loop Information
         public static bool IsInLoop { get; set; } = true;
+
+        // Product Loop Inforamation
         public static double TotalProductsMirrored { get; set; } = 0;
+        public static double TotalProductsErrored { get; set; } = 0;
+        public static double TotalProductsUpToDate { get; set; } = 0;
+        #endregion
 
         /// <summary>
         /// Asynchronously Start The Mirror Cycle
         /// </summary>
+        #region [**] Mirror Cycle Logic
+
+        #region [1] Convert Sync Value -> SQL Friendly
+
+        public static void ConvertSyncValue(string SyncValue)
+        {
+            // Convert SyncValue To SQL
+            if (SyncValue == "Name Of Item") { SyncValueForServer = $"Name Of Item"; }
+            if (SyncValue == "Supplier Code") { SyncValueForServer = "CodeSup"; }
+            if (SyncValue == "Barcode") { SyncValueForServer = "Barcode"; }
+            if (SyncValue == "Internal Reference Code") { SyncValueForServer = "InternalRefCode"; }
+        }
+
+        #endregion
+
+        #region [2] Actual Mirror Cycle
         public static bool AddedProduct { get; set; }
         public async static void StartTheSync(string SyncValueToEnter, string LoopMinutes = "1", string StoreCode = "")
         {
@@ -39,16 +54,15 @@ namespace OctoSync
             // Convert Loop To Minutes from MS
             int LoopMiliseconds = Convert.ToInt32(LoopMinutes) * 60000; // 40 Minutes = 2,400,000 Milliseconds
 
-            // Convert SyncValue To SQL
-            if (SyncValueToEnter == "Name Of Item") { SyncValueForServer = $"Name Of Item"; }
-            if (SyncValueToEnter == "Supplier Code") { SyncValueForServer = "CodeSup"; }
-            if (SyncValueToEnter == "Barcode") { SyncValueForServer = "Barcode"; }
-            if (SyncValueToEnter == "Internal Reference Code") { SyncValueForServer = "InternalRefCode"; }
+            // Convert Friendly Values
+            ConvertSyncValue(SyncValueForServer);
 
             // Begin Loop & Mirror Process
             while (IsInLoop)
             {
                 TotalProductsMirrored = 0;
+                TotalProductsErrored = 0;
+                TotalProductsUpToDate = 0;
                 // Stop Progress If In Active Loop
                 if (IsInLoop == false) { await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  ---------------- * Sync Terminated * ----------------" + Environment.NewLine); await SQL.PostToServer($"---------------- * Sync Terminated * ----------------"); break; }
                 await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  Time Until Next Sync: {LoopMinutes} Minute(s)" + Environment.NewLine);
@@ -133,6 +147,7 @@ namespace OctoSync
 
                                 if (c_CombinedInformation == s_CombinedInformation && c_Quantity == s_Quantity)
                                 {
+                                    TotalProductsUpToDate++;
                                     await File.AppendAllTextAsync($"Logs_{c_StoreCode}.txt", DateTime.Now + $" | Missed Product (No Change): {c_NameOfItem} (Quantity: {c_Quantity})" + Environment.NewLine);
                                     await SQL.PostToServer($"Missed Product (No Change): {c_NameOfItem} (Quantity: {c_Quantity})");
                                     AddedProduct = true;
@@ -160,7 +175,6 @@ namespace OctoSync
                                         {
                                             await File.AppendAllTextAsync($"Logs_{c_StoreCode}.txt", DateTime.Now + $" | Inserted Product (New Product): {c_NameOfItem} (Quantity: {c_Quantity})" + Environment.NewLine);
                                             await SQL.ExecuteThisQuery($"Insert Into [OctoSyncStock] ([{SyncValueForServer}], [StoreCode], [Quantity]) VALUES ('{c_NameOfItem}', '{c_StoreCode}', '{c_Quantity}')");
-                                            await SQL.PostToServer($"Insert Into [OctoSyncStock] ([{SyncValueForServer}], [StoreCode], [Quantity]) VALUES ('{c_NameOfItem}', '{c_StoreCode}', '{c_Quantity}')", "SUPPORT_STAFF_DEBUG");
                                             await SQL.PostToServer($"Inserted Product (New Product): {c_NameOfItem} (Quantity: {c_Quantity})");
                                             AddedProduct = true;
                                         }
@@ -181,6 +195,7 @@ namespace OctoSync
                             #region [*] Product Error, Log Created
                             await File.AppendAllTextAsync($"Logs_{c_StoreCode}.txt", DateTime.Now + $" | Missed Product (ERROR PRODUCT): {c_NameOfItem}" + Environment.NewLine);
                             await SQL.PostToServer($"Missed Product (ERROR PRODUCT): {c_NameOfItem}");
+                            TotalProductsErrored++;
                             #endregion
                         }
                         await Task.Delay(150);
@@ -191,15 +206,19 @@ namespace OctoSync
                     await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  * No Products To Mirror, Everything Up To Date *" + Environment.NewLine);
                     await SQL.PostToServer($"* No Products To Mirror, Everything Up To Date *");
                 }
-                await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  ---------------- * Sync Finished (Mirrored {TotalProductsMirrored} Products) * ----------------" + Environment.NewLine);
-                await SQL.PostToServer($"---------------- * Sync Finished (Mirrored {ClientData.Rows.Count} Products) * ----------------");
+                await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  ---------------- * Sync Finished (Mirrored {TotalProductsMirrored} Products, {TotalProductsUpToDate} Checked & Up To Date, {TotalProductsErrored} Errors Found) * ----------------" + Environment.NewLine);
+                await SQL.PostToServer($"---------------- * Sync Finished (Mirrored {TotalProductsMirrored} Products, {TotalProductsUpToDate} Checked & Up To Date, {TotalProductsErrored} Errors Found) * ----------------");
             }
         }
+        #endregion
+
+        #endregion
 
         /// <summary>
         /// Asynchronously Create The Required Tables: OctoSyncStock (String SyncValueToEnter)
         /// </summary>
         /// <returns></returns>
+        #region [**] Create Required OctoSync Tables
         public static Task<Task> CreateTheRequiredTables(string SyncValueToEnter)
         {
             return Task.Run(async () =>
@@ -219,5 +238,44 @@ namespace OctoSync
                 return Task.CompletedTask;
             });
         }
+        #endregion
+
+        ///
+        /// Asynchronously Complete A Full Upload Operation
+        ///
+        #region [**] Full Upload
+
+        
+        public static async Task<Task> CompleteFullUpload(string SyncValueFromMainWindow, string StoreCode, string LoggedInStaffName)
+        {
+            return Task.Run(async () => 
+            {
+                // Convert Sync Values & Obtain SQL Data
+                ConvertSyncValue(SyncValueFromMainWindow);
+                try { DataFromQuery = await SQL.GetSQLData_FromClient($"Select [{SyncValueForServer}] ,(SELECT [Setting] FROM [Settings] Where SettingName = 'StockLocationReferenceName') as StoreCode ,[Quantity] From Stock S Where [{SyncValueForServer}] != '' and [{SyncValueForServer}] is not Null"); }
+                catch (Exception ee)
+                {
+                    await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  Failed to obtain data from local client." + Environment.NewLine + ee.Message + Environment.NewLine);
+                    await SQL.PostToServer($"Failed to obtain data from local client." + Environment.NewLine + ee.Message + Environment.NewLine, LoggedInStaffName);
+                }
+
+                // Start Loop & Build The Queries
+                foreach (DataRow data in DataFromQuery.Rows)
+                {
+                    // Obtain Data
+                    string c_SyncValue = data[$"{SyncValueForServer}"].ToString().Replace("'", "''");
+                    string c_StoreCode = data[$"StoreCode"].ToString().Replace("'", "''");
+                    string c_Quantity = data[$"Quantity"].ToString().Replace("'", "''");
+
+                    // Execute & Log
+                    await SQL.ExecuteThisQuery($"Insert Into [OctoSyncStock] ([{SyncValueForServer}], [StoreCode], [Quantity]) VALUES ('{c_SyncValue}', '{c_StoreCode}', '{c_Quantity}')");
+                    await File.AppendAllTextAsync($"Logs_{c_StoreCode}.txt", DateTime.Now + $" | Inserted Product (Full Upload): {c_SyncValue} (Quantity: {c_Quantity})" + Environment.NewLine);
+                    await SQL.PostToServer($"Inserted Product (Full Upload): {c_SyncValue} (Quantity: {c_Quantity})");
+                    await Task.Delay(20);
+                }
+            });
+        }
+
+        #endregion
     }
 }

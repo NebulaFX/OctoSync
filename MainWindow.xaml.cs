@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Data;
 
 // TODO:
 // ** MINOR **
@@ -27,6 +28,7 @@ namespace OctoSync
     {
         // Save Information
         public bool DoesTableExist { get; set; }
+        public DataTable DataFromQuery { get; set; }
 
         // Connection Information
         public static string LocalConnectionString { get; set; }
@@ -375,7 +377,7 @@ namespace OctoSync
             while (LiveRefreshTheLogs) 
             {
                 if (!LiveRefreshTheLogs) { break; }
-                await Task.Delay(250);
+                await Task.Delay(1000);
                 if (File.Exists($"Logs_{StoreCodeBox.Text}.txt"))
                 {
                     Console.Text = File.ReadAllText($"Logs_{StoreCodeBox.Text}.txt");
@@ -490,6 +492,24 @@ namespace OctoSync
                 }
             }
             #endregion
+        }
+
+        private async void FullUploadButton_Click(object sender, RoutedEventArgs e)
+        {
+            var result = MessageBox.Show("Complete a full upload of all products?", "Are You Sure?", MessageBoxButton.YesNo);
+            if (result == MessageBoxResult.Yes)
+            {
+                string CheckTableIsEmpty = SQL.ExecuteSQLScalar($"Select Top(1) [{SyncCombobox.Text}] from [OctoSyncStock] where [{SyncCombobox.Text}] != 'PremierEPOSTestItem'");
+
+                if (CheckTableIsEmpty == "" || CheckTableIsEmpty == null)
+                {
+                    // Start full upload as utility function
+                    Utility.IsInLoop = false;
+                    await SQL.PostToServer($"Full Upload In Progress", MainWindow.Username);
+                    await Utility.CompleteFullUpload(SyncCombobox.Text, StoreCodeBox.Text, UserBox.Text);
+                }
+                else { MessageBox.Show("Products already exist, cannot upload products", "Cannot Complete Operation", MessageBoxButton.OK); }
+            }
         }
     }
 }

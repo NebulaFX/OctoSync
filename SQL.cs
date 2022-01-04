@@ -217,5 +217,44 @@ namespace OctoSync
                 return result;
             }
         }
+
+        /// <summary>
+        /// Asynchronously Executes A Query & Returns The Result As Scalar Obj (string QueryToExecute)
+        /// </summary>
+        public static string ExecuteSQLScalar_Local(string QueryToExecute)
+        {
+            using (SqlConnection connection = new SqlConnection(MainWindow.LocalConnectionString))
+            {
+                SqlCommand tempcommand = new SqlCommand(QueryToExecute, connection);
+                string result = "";
+                try
+                {
+                    if (tempcommand.Connection.State != ConnectionState.Open)
+                    {
+                        tempcommand.Connection.Open();
+                    }
+                    tempcommand.CommandTimeout = 0;
+                    try
+                    {
+                        result = Convert.ToString(tempcommand.ExecuteScalar());
+                    }
+                    catch (Exception ex)
+                    {
+                        File.AppendAllText($"Logs_{TheStoreCode}.txt", DateTime.Now + " | ** SQL FAILURE ** " + ex.Message + Environment.NewLine);
+                    }
+                    if (connection.State != ConnectionState.Closed)
+                    {
+                        connection.Close();
+                    }
+                    tempcommand.Dispose();
+                }
+                catch (Exception ex2)
+                {
+                    File.AppendAllText($"Logs_{TheStoreCode}.txt", DateTime.Now + " | ** SQL FAILURE ** " + ex2.Message + Environment.NewLine);
+                    result = "";
+                }
+                return result;
+            }
+        }
     }
 }

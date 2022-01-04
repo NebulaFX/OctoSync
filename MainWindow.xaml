@@ -145,8 +145,11 @@
         </Border>
 
         <Border x:Name="SettingsTabby" Visibility="Collapsed" Grid.Row="1" Grid.RowSpan="24" Grid.ColumnSpan="24" Background="White">
-            <Grid>
+            <Grid Margin="10">
+                <Button Grid.ColumnSpan="2" Background="#2f7ae5" BorderBrush="Transparent" Content="Full Upload" Foreground="White" FontWeight="Bold" x:Name="FullUploadButton" Click="FullUploadButton_Click"/>
                 <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
                     <RowDefinition/>
                     <RowDefinition/>
                     <RowDefinition/>
@@ -170,7 +173,7 @@
         </Border>
 
 
-        <Border Grid.ColumnSpan="36" Grid.RowSpan="36" x:Name="SignInForm">
+        <Border Grid.ColumnSpan="36" Grid.RowSpan="36" x:Name="SignInForm" Visibility="Visible">
             <Grid Background="White" MouseDown="MoveTheForm">
                 <Button HorizontalAlignment="Right" Grid.Column="12" VerticalAlignment="Top"
                         Content="X" Foreground="#2f7ae5" FontSize="16"
