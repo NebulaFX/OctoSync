@@ -14,14 +14,8 @@ using MahApps.Metro.Controls;
 
 // TODO:
 // ** MINOR **
-// - Assign Startup Task For Program In Windows [Configurable]
 
 // ** MAJOR **
-// - Login As SQL User, Rather Than 3141 [Log Entry To SQL]
-// - Upload Errors To Server [With Customer Number]
-// - Button to upload all?
-// - ADD CUSTOM COOLDOWN FOR DIFFERENT PC SYSTEMS?
-// - Only Show logs if Customer is 150 or 719
 
 namespace OctoSync
 {
@@ -403,8 +397,12 @@ namespace OctoSync
                 await Task.Delay(1000);
                 if (File.Exists($"Logs_{StoreCodeBox.Text}.txt"))
                 {
-                    Console.Text = File.ReadAllText($"Logs_{StoreCodeBox.Text}.txt");
-                    Console.ScrollToEnd();
+                    try
+                    {
+                        Console.Text = File.ReadAllText($"Logs_{StoreCodeBox.Text}.txt");
+                        Console.ScrollToEnd();
+                    }
+                    catch { }
                 }
             }
         }

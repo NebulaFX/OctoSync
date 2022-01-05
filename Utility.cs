@@ -277,7 +277,7 @@ namespace OctoSync
                             string c_Quantity = cData["Quantity"].ToString();
 
                             // Check If Product Exists On Server
-                            ServerData = await SQL.GetSQLData($"Select [{SyncValueForServer}] From [OctoSyncStock] Where [{SyncValueForServer}] = '{c_NameOfItem}'");
+                            ServerData = await SQL.GetSQLData($"Select [{SyncValueForServer}] From [OctoSyncStock] Where [{SyncValueForServer}] = '{c_NameOfItem}' AND StoreCode = '{c_StoreCode}'");
 
                             if (ServerData.Rows.Count == 0)
                             {
@@ -325,7 +325,7 @@ namespace OctoSync
                             string c_Quantity = cData["Quantity"].ToString();
 
                             // Check If Product Exists On Server
-                            ServerData = await SQL.GetSQLData($"Select [{SyncValueForServer}] From [OctoSyncStock] Where [{SyncValueForServer}] = '{c_NameOfItem}'");
+                            ServerData = await SQL.GetSQLData($"Select [{SyncValueForServer}] From [OctoSyncStock] Where [{SyncValueForServer}] = '{c_NameOfItem}' and [StoreCode] = '{c_StoreCode}'");
 
                             if (ServerData.Rows.Count == 0)
                             {
