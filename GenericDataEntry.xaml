@@ -8,7 +8,7 @@
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
         WindowStyle="ToolWindow"
-        Title="Enter Your Connection Details" Height="200" Width="500">
+        Title="Enter Your Connection Details" Height="230" Width="500">
     <Grid>
         <Label Foreground="#2f7ae5" Content="IP, Port" Grid.Row="1" FontSize="16" VerticalAlignment="Center"/>
         <Label Foreground="#2f7ae5" Content="Login Details" Grid.Row="2" FontSize="16" VerticalAlignment="Center"/>

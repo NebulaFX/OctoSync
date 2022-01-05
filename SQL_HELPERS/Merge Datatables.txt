@@ -1,0 +1,12 @@
+//compare the local database with the server database
+        public async void CompareDataTables() {
+            //get the local data
+            DataTable localData = await SQL.GetSQLData_FromClient("Select * From Stock");
+            //get the server data
+            DataTable serverData = await SQL.GetSQLData_FromServer("Select * From Stock");
+            //compare the data
+            DataTable result = localData.Copy();
+            result.Merge(serverData);
+            //display the result
+            dataGridView1.DataSource = result;
+        }

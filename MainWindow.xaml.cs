@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Data;
+using MahApps.Metro.Controls;
 
 // TODO:
 // ** MINOR **
@@ -37,6 +38,8 @@ namespace OctoSync
         // Program Information
         public static bool LiveRefreshTheLogs { get; set; } = false;
         public static bool AutomaticInformationFillIn { get; set; } = false;
+        public static bool OverrideProductsOnFullUpload { get; set; }
+        public static string CustomSyncDelay { get; set; } = Properties.Settings.Default.SyncDelay;
 
         // User Login Information
         public static string Username { get; set; }
@@ -168,6 +171,8 @@ namespace OctoSync
             InitializeComponent();
             AddConsoleEntry("Mirror Software Started");
 
+            if (!String.IsNullOrEmpty(Properties.Settings.Default.SyncDelay)) { CustomSyncDelayBox.Text = Properties.Settings.Default.SyncDelay; }
+
             // Check If Program Can Fill In Information Automatically
             if (!String.IsNullOrEmpty(Properties.Settings.Default.LocalConnectionString) && !String.IsNullOrEmpty(Properties.Settings.Default.ServerConnectionString))
             {
@@ -258,6 +263,10 @@ namespace OctoSync
 
                 // Post Object To Server
                 SQL.PostToServer($"Obtained Values Automatically: SYNC VALUE: {SyncValue_raw.ToString()} STORE CODE: {StoreCodeBox.Text}");
+
+                // Save Information
+                ServerConnectionString = ServerConBox.Text;
+                LocalConnectionString = LocalConnectionStringBox.Text;
             }
         }
 
@@ -315,6 +324,20 @@ namespace OctoSync
         {
             Regex regex = new Regex("[^0-9]+");
             e.Handled = regex.IsMatch(e.Text);
+        }
+
+        private void SaveSyncDelay(object sender, RoutedEventArgs e)
+        {
+            CustomSyncDelay = CustomSyncDelayBox.Text;
+            Properties.Settings.Default.SyncDelay = CustomSyncDelay;
+            Properties.Settings.Default.Save();
+            Properties.Settings.Default.Reload();
+        }
+
+        private void CustomSyncDelayBox_PreviewTextInput_1(object sender, TextCompositionEventArgs e)
+        {
+            // only allow numbers to be entered
+            e.Handled = new Regex("[^0-9]+").IsMatch(e.Text);
         }
         #endregion
         #region [*] Save Store Code
@@ -420,6 +443,27 @@ namespace OctoSync
         }
 
         #endregion
+        #region [*] Check Override For Products
+
+        private void CheckOverride(object sender, RoutedEventArgs e)
+        {
+            ToggleSwitch toggleSwitch = sender as ToggleSwitch;
+            if (toggleSwitch != null)
+            {
+                if (toggleSwitch.IsOn == true)
+                {
+                    // on
+                    OverrideProductsOnFullUpload = true;
+                }
+                else
+                {
+                    // off
+                    OverrideProductsOnFullUpload = false;
+                }
+            }
+        }
+
+        #endregion
         #region [----------------------------------] DEBUG FUNCTION
         private void TESTBUTTON(object sender, MouseButtonEventArgs e)
         {
@@ -496,19 +540,13 @@ namespace OctoSync
 
         private async void FullUploadButton_Click(object sender, RoutedEventArgs e)
         {
-            var result = MessageBox.Show("Complete a full upload of all products?", "Are You Sure?", MessageBoxButton.YesNo);
+            var result = MessageBox.Show("Complete A Full Product Upload?", "Are You Sure?", MessageBoxButton.YesNo);
             if (result == MessageBoxResult.Yes)
             {
-                string CheckTableIsEmpty = SQL.ExecuteSQLScalar($"Select Top(1) [{SyncCombobox.Text}] from [OctoSyncStock] where [{SyncCombobox.Text}] != 'PremierEPOSTestItem'");
-
-                if (CheckTableIsEmpty == "" || CheckTableIsEmpty == null)
-                {
-                    // Start full upload as utility function
-                    Utility.IsInLoop = false;
-                    await SQL.PostToServer($"Full Upload In Progress", MainWindow.Username);
-                    await Utility.CompleteFullUpload(SyncCombobox.Text, StoreCodeBox.Text, UserBox.Text);
-                }
-                else { MessageBox.Show("Products already exist, cannot upload products", "Cannot Complete Operation", MessageBoxButton.OK); }
+                // Start full upload as utility function
+                Utility.IsInLoop = false;
+                await SQL.PostToServer($"Full Upload In Progress", MainWindow.Username);
+                await Utility.CompleteFullUpload(SyncCombobox.Text, StoreCodeBox.Text, UserBox.Text);
             }
         }
     }

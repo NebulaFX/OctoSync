@@ -8,7 +8,9 @@ namespace OctoSync
 {
     class Utility
     {
+        // Properties & Constructors
         #region [** -- Properties -- **]
+
         // Query Information For Sync
         public static DataTable ServerData { get; set; }
         public static DataTable ClientData { get; set; }
@@ -25,9 +27,9 @@ namespace OctoSync
         public static double TotalProductsUpToDate { get; set; } = 0;
         #endregion
 
-        /// <summary>
+        /// 
         /// Asynchronously Start The Mirror Cycle
-        /// </summary>
+        ///
         #region [**] Mirror Cycle Logic
 
         #region [1] Convert Sync Value -> SQL Friendly
@@ -45,6 +47,7 @@ namespace OctoSync
 
         #region [2] Actual Mirror Cycle
         public static bool AddedProduct { get; set; }
+
         public async static void StartTheSync(string SyncValueToEnter, string LoopMinutes = "1", string StoreCode = "")
         {
             // Collect Customer ID
@@ -55,7 +58,7 @@ namespace OctoSync
             int LoopMiliseconds = Convert.ToInt32(LoopMinutes) * 60000; // 40 Minutes = 2,400,000 Milliseconds
 
             // Convert Friendly Values
-            ConvertSyncValue(SyncValueForServer);
+            ConvertSyncValue(SyncValueToEnter);
 
             // Begin Loop & Mirror Process
             while (IsInLoop)
@@ -104,6 +107,7 @@ namespace OctoSync
                 {
                     foreach (DataRow cData in ClientData.Rows)
                     {
+                        await Task.Delay(Convert.ToInt32(MainWindow.CustomSyncDelay));
                         // Obtain Client Data
                         AddedProduct = false;
                         string c_NameOfItem = cData[$"{SyncValueForServer}"].ToString();
@@ -198,7 +202,6 @@ namespace OctoSync
                             TotalProductsErrored++;
                             #endregion
                         }
-                        await Task.Delay(150);
                     }
                 }
                 else
@@ -214,10 +217,9 @@ namespace OctoSync
 
         #endregion
 
-        /// <summary>
+        /// 
         /// Asynchronously Create The Required Tables: OctoSyncStock (String SyncValueToEnter)
-        /// </summary>
-        /// <returns></returns>
+        /// 
         #region [**] Create Required OctoSync Tables
         public static Task<Task> CreateTheRequiredTables(string SyncValueToEnter)
         {
@@ -241,41 +243,117 @@ namespace OctoSync
         #endregion
 
         ///
-        /// Asynchronously Complete A Full Upload Operation
+        /// Complete A Full Upload
         ///
         #region [**] Full Upload
-
         
         public static async Task<Task> CompleteFullUpload(string SyncValueFromMainWindow, string StoreCode, string LoggedInStaffName)
         {
             return Task.Run(async () => 
             {
-                // Convert Sync Values & Obtain SQL Data
-                ConvertSyncValue(SyncValueFromMainWindow);
-                try { DataFromQuery = await SQL.GetSQLData_FromClient($"Select [{SyncValueForServer}] ,(SELECT [Setting] FROM [Settings] Where SettingName = 'StockLocationReferenceName') as StoreCode ,[Quantity] From Stock S Where [{SyncValueForServer}] != '' and [{SyncValueForServer}] is not Null"); }
-                catch (Exception ee)
+                // If override is set to no
+                if (MainWindow.OverrideProductsOnFullUpload == false)
                 {
-                    await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  Failed to obtain data from local client." + Environment.NewLine + ee.Message + Environment.NewLine);
-                    await SQL.PostToServer($"Failed to obtain data from local client." + Environment.NewLine + ee.Message + Environment.NewLine, LoggedInStaffName);
+                    // Notify Start
+                    await SQL.PostToServer($"Full Upload Operation Started (Options: Don't Overwrite Products)", LoggedInStaffName);
+                    await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  * Full Upload Operation Started (Options: Don't Overwrite Products)*" + Environment.NewLine);
+
+                    ConvertSyncValue(SyncValueFromMainWindow);
+                    try { ClientData = await SQL.GetSQLData_FromClient($"Select [{SyncValueForServer}] ,(SELECT [Setting] FROM [Settings] Where SettingName = 'StockLocationReferenceName') as StoreCode ,[Quantity] From Stock S Where [{SyncValueForServer}] != '' and [{SyncValueForServer}] is not Null"); }
+                    catch (Exception ee)
+                    {
+                        await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  Failed to obtain data from local client." + Environment.NewLine + ee.Message + Environment.NewLine);
+                        await SQL.PostToServer($"Failed to obtain data from local client." + Environment.NewLine + ee.Message + Environment.NewLine, LoggedInStaffName);
+                    }
+
+                    // if the product does not exist on the server, add it
+                    if (ClientData.Rows.Count > 0)
+                    {
+                        foreach (DataRow cData in ClientData.Rows)
+                        {
+                            await Task.Delay(Convert.ToInt32(MainWindow.CustomSyncDelay));
+                            string c_NameOfItem = cData[$"{SyncValueForServer}"].ToString();
+                            string c_StoreCode = cData["StoreCode"].ToString();
+                            string c_Quantity = cData["Quantity"].ToString();
+
+                            // Check If Product Exists On Server
+                            ServerData = await SQL.GetSQLData($"Select [{SyncValueForServer}] From [OctoSyncStock] Where [{SyncValueForServer}] = '{c_NameOfItem}'");
+
+                            if (ServerData.Rows.Count == 0)
+                            {
+                                // Insert Product
+                                await Task.Delay(Convert.ToInt32(MainWindow.CustomSyncDelay));
+                                await SQL.ExecuteThisQuery($"Insert Into [OctoSyncStock] ([{SyncValueForServer}], [StoreCode], [Quantity]) VALUES ('{c_NameOfItem}', '{c_StoreCode}', '{c_Quantity}')");
+                                await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" | Inserted Product (Full Upload): {c_NameOfItem} (Quantity: {c_Quantity})" + Environment.NewLine);
+                                await SQL.PostToServer($"Inserted Product (Full Upload): {c_NameOfItem} (Quantity: {c_Quantity})");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  * No Products To Mirror, Everything Up To Date *" + Environment.NewLine);
+                        await SQL.PostToServer($"* No Products To Mirror, Everything Up To Date *");
+                    }
+
+                    // Notify Completion
+                    await SQL.PostToServer($"Full Upload Operation Completed (Options: Don't Overwrite Products)", LoggedInStaffName);
+                    await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  * Full Upload Operation Completed (Options: Don't Overwrite Products) *" + Environment.NewLine);
                 }
 
-                // Start Loop & Build The Queries
-                foreach (DataRow data in DataFromQuery.Rows)
+                // override set, overwrite all products
+                else
                 {
-                    // Obtain Data
-                    string c_SyncValue = data[$"{SyncValueForServer}"].ToString().Replace("'", "''");
-                    string c_StoreCode = data[$"StoreCode"].ToString().Replace("'", "''");
-                    string c_Quantity = data[$"Quantity"].ToString().Replace("'", "''");
+                    // Notify Start
+                    await SQL.PostToServer($"Full Upload Operation Started (Options: Overwrite Products)", LoggedInStaffName);
+                    await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  * Full Upload Operation Started (Options: Overwrite Products)*" + Environment.NewLine);
 
-                    // Execute & Log
-                    await SQL.ExecuteThisQuery($"Insert Into [OctoSyncStock] ([{SyncValueForServer}], [StoreCode], [Quantity]) VALUES ('{c_SyncValue}', '{c_StoreCode}', '{c_Quantity}')");
-                    await File.AppendAllTextAsync($"Logs_{c_StoreCode}.txt", DateTime.Now + $" | Inserted Product (Full Upload): {c_SyncValue} (Quantity: {c_Quantity})" + Environment.NewLine);
-                    await SQL.PostToServer($"Inserted Product (Full Upload): {c_SyncValue} (Quantity: {c_Quantity})");
-                    await Task.Delay(20);
+                    ConvertSyncValue(SyncValueFromMainWindow);
+                    try { ClientData = await SQL.GetSQLData_FromClient($"Select [{SyncValueForServer}] ,(SELECT [Setting] FROM [Settings] Where SettingName = 'StockLocationReferenceName') as StoreCode ,[Quantity] From Stock S Where [{SyncValueForServer}] != '' and [{SyncValueForServer}] is not Null"); }
+                    catch (Exception ee)
+                    {
+                        await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  Failed to obtain data from local client." + Environment.NewLine + ee.Message + Environment.NewLine);
+                        await SQL.PostToServer($"Failed to obtain data from local client." + Environment.NewLine + ee.Message + Environment.NewLine, LoggedInStaffName);
+                    }
+
+                    // upload all products and delete them if they already exist
+                    if (ClientData.Rows.Count > 0)
+                    {
+                        foreach (DataRow cData in ClientData.Rows)
+                        {
+                            string c_NameOfItem = cData[$"{SyncValueForServer}"].ToString();
+                            string c_StoreCode = cData["StoreCode"].ToString();
+                            string c_Quantity = cData["Quantity"].ToString();
+
+                            // Check If Product Exists On Server
+                            ServerData = await SQL.GetSQLData($"Select [{SyncValueForServer}] From [OctoSyncStock] Where [{SyncValueForServer}] = '{c_NameOfItem}'");
+
+                            if (ServerData.Rows.Count == 0)
+                            {
+                                // Insert Product
+                                await Task.Delay(Convert.ToInt32(MainWindow.CustomSyncDelay));
+                                await SQL.ExecuteThisQuery($"Insert Into [OctoSyncStock] ([{SyncValueForServer}], [StoreCode], [Quantity]) VALUES ('{c_NameOfItem}', '{c_StoreCode}', '{c_Quantity}')");
+                                await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" | Inserted Product (Full Upload): {c_NameOfItem} (Quantity: {c_Quantity})" + Environment.NewLine);
+                                await SQL.PostToServer($"Inserted Product (Full Upload): {c_NameOfItem} (Quantity: {c_Quantity})");
+                            }
+                            else
+                            {
+                                // Delete & Overwrite the product
+                                await Task.Delay(Convert.ToInt32(MainWindow.CustomSyncDelay));
+                                await SQL.ExecuteThisQuery($"Delete From [OctoSyncStock] Where [{SyncValueForServer}] = '{c_NameOfItem}' and [StoreCode] = '{c_StoreCode}'");
+                                await SQL.ExecuteThisQuery($"Insert Into [OctoSyncStock] ([{SyncValueForServer}], [StoreCode], [Quantity]) VALUES ('{c_NameOfItem}', '{c_StoreCode}', '{c_Quantity}')");
+                                await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" | Product Override (Full Upload): {c_NameOfItem} (Quantity: {c_Quantity})" + Environment.NewLine);
+                                await SQL.PostToServer($"Deleted & Overwrote Product (Full Upload): {c_NameOfItem} (Quantity: {c_Quantity})");
+                            }
+                        }
+                    }
+
+                    // Notify Completion
+                    await SQL.PostToServer($"Full Upload Operation Completed (Options: Overwrite Products)", LoggedInStaffName);
+                    await File.AppendAllTextAsync($"Logs_{StoreCode}.txt", DateTime.Now + $" |  * Full Upload Operation Completed (Options: Overwrite Products) *" + Environment.NewLine);
                 }
             });
         }
-
         #endregion
+
     }
 }

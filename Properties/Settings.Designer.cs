@@ -82,5 +82,17 @@ namespace OctoSync.Properties {
                 this["SyncValue"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string SyncDelay {
+            get {
+                return ((string)(this["SyncDelay"]));
+            }
+            set {
+                this["SyncDelay"] = value;
+            }
+        }
     }
 }

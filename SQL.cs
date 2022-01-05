@@ -26,7 +26,7 @@ namespace OctoSync
                 SqlConnection sqlConnection = new SqlConnection();
 
                 // Run Query & Return As DataTable
-                try { sqlConnection.ConnectionString = MainWindow.ServerConnectionString; } catch (Exception eee) { File.AppendAllText($"Logs_{TheStoreCode}", DateTime.Now + " | " + eee.Message + Environment.NewLine); }
+                try { sqlConnection.ConnectionString = MainWindow.ServerConnectionString; } catch (Exception eee) { File.AppendAllText($"Logs_{TheStoreCode}", DateTime.Now + " | " + eee.Message + Environment.NewLine +  "Please Try: Mirror To Set The Values & Then Terminate It. " + Environment.NewLine); }
 
                 using (SqlDataAdapter da = new SqlDataAdapter(QueryToExecute, sqlConnection.ConnectionString))
                 {
@@ -50,7 +50,7 @@ namespace OctoSync
 
                 using (SqlDataAdapter da = new SqlDataAdapter(QueryToExecute, sqlConnection.ConnectionString))
                 {
-                    try { da.Fill(dt); } catch (Exception eee) { File.AppendAllText($"Logs_{TheStoreCode}.txt", DateTime.Now + " | ** SQL FAILURE ** " + eee.Message + Environment.NewLine); }
+                    try { da.Fill(dt); } catch (Exception eee) { File.AppendAllText($"Logs_{TheStoreCode}.txt", DateTime.Now + " | ** SQL FAILURE ** " + "Please Try: Mirror To Set The Values & Then Terminate It. " + Environment.NewLine + eee.Message + Environment.NewLine); }
                 }
 
                 return dt;
@@ -120,7 +120,7 @@ namespace OctoSync
                         command.Connection.Open(); command.ExecuteNonQuery(); command.Connection.Close();
                     }
                 }
-                catch (Exception ee) { File.AppendAllText($"Logs_{TheStoreCode}.txt", DateTime.Now + " | ** SQL FAILURE ** Failed To Connect To 161 Server, Local Log Created" + Environment.NewLine + ee.Message); }
+                catch (Exception ee) {}
             });
         }
         /// <summary>

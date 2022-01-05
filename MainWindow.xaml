@@ -4,12 +4,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OctoSync"
-        xmlns:tb="http://www.hardcodet.net/taskbar"
+        xmlns:tb="http://www.hardcodet.net/taskbar" 
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         mc:Ignorable="d"
         Title="OctoSync" Height="410" Width="620">
+
     <Grid>
         <Border Grid.ColumnSpan="12">
             <Grid>
@@ -22,9 +24,9 @@
                 <Label Content="Octo Sync" Foreground="White" FontWeight="Bold"
                        FontSize="9" VerticalAlignment="Center" MouseDoubleClick="TESTBUTTON"/>
                 <Button Grid.Column="1" Content="Configuration"
-                        Foreground="White" FontWeight="Normal"
+                        Foreground="White" FontWeight="Bold"
                         Background="Transparent" BorderBrush="Transparent"
-                        x:Name="ConfigurationTab"
+                        x:Name="ConfigurationTab" FocusVisualStyle="{x:Null}"
                         Click="ConfigurationTab_Click" Opacity="1"/>
                 <Button Grid.Column="2" Content="Logs"
                         Foreground="White" FontWeight="Normal"
@@ -40,10 +42,10 @@
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
-                </Grid.ColumnDefinitions> 
+                </Grid.ColumnDefinitions>
             </Grid>
         </Border>
-        
+
         <Border Margin="10,25,10,10" Grid.ColumnSpan="24" Grid.RowSpan="24" x:Name="ConfigurationTabby">
             <Grid>
                 <tb:TaskbarIcon
@@ -146,7 +148,13 @@
 
         <Border x:Name="SettingsTabby" Visibility="Collapsed" Grid.Row="1" Grid.RowSpan="24" Grid.ColumnSpan="24" Background="White">
             <Grid Margin="10">
+                <Rectangle Grid.Column="5" Grid.RowSpan="12" Grid.ColumnSpan="3" Stroke="#2f7ae5"/>
+                <TextBox AcceptsReturn="False" Grid.Column="7" Grid.Row="1" Text="150" VerticalContentAlignment="Center" FontSize="21"  BorderBrush="Transparent" LostFocus="SaveSyncDelay"
+                         x:Name="CustomSyncDelayBox" PreviewTextInput="CustomSyncDelayBox_PreviewTextInput_1" MaxLength="6"/>
                 <Button Grid.ColumnSpan="2" Background="#2f7ae5" BorderBrush="Transparent" Content="Full Upload" Foreground="White" FontWeight="Bold" x:Name="FullUploadButton" Click="FullUploadButton_Click"/>
+                <mah:ToggleSwitch Grid.Column="7" Content="" Margin="20,0,0,0" Toggled="CheckOverride"/>
+                <Label Foreground="#2f7ae5" FontWeight="Bold" Grid.Column="5" Grid.ColumnSpan="2" Content="Overide All Products" VerticalAlignment="Center"/>
+                <Label Foreground="#2f7ae5" FontWeight="Bold" Grid.Column="5" Grid.Row="1" Grid.ColumnSpan="2" Content="Custom Sync Delay (ms)" VerticalAlignment="Center"/>
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
@@ -240,10 +248,6 @@
             </Grid>
         </Border>
         <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
             <RowDefinition/>
             <RowDefinition/>
             <RowDefinition/>
